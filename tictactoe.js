@@ -24,7 +24,11 @@ const gameBoard = (function () {
         }
     }
     const getGame = () => gameArray;
-    const resetGame = () => gameArray = [];
+    const resetGame = () => {
+        for (let y = 0; y < 9; y++){
+            gameArray[y].occupied = null;
+        }
+    }
 
     const checkWin = () => {
         const combos = [[0,1,2], [3,4,5], [6,7,8], [0,3,6], 
@@ -34,10 +38,10 @@ const gameBoard = (function () {
             const b = gameArray[combos[i][1]].occupied;
             const c = gameArray[combos[i][2]].occupied;
             if (a !== null && a === b && a === c){
-                return { won: true, symbol: a };
+                return { won: true, symbol: a, winningCombo: combos[i] };
             }
         }
-        return { won: false, symbol: null };
+        return { won: false, symbol: null, winningCombo: null };
     }
 
     const displayTerminal = () => {
@@ -82,13 +86,11 @@ const startGame = (function () {
     return { init, getPlayers };
 })();
 
-const playRound = (function (){
-    startGame.init();
+function playRound() {
     const players = startGame.getPlayers()
     let currentPlayer = players.player1;
 
-    const board = gameBoard;
-    board.setUpGame();
+    gameBoard.setUpGame();
 
     const switchPlayers = () =>{
         if(currentPlayer === players.player1){
@@ -100,45 +102,77 @@ const playRound = (function (){
     }
 
     const isOccupied = (coordinate) =>{
-        if(board.getGame()[coordinate].occupied !== null){
-            return true;
-        }
-        else{
-            return false;
-        }
+        return gameBoard.getGame()[coordinate].occupied !== null;
     }
 
     const placeMove = () =>{
-        board.displayTerminal();
+        gameBoard.displayTerminal();
         let playerMove = prompt(`Choose where to place your move Player:${currentPlayer.symbol}`, "");
         if(playerMove > 9){
-            placeMove();
+            return placeMove();
         }
         if(isOccupied(playerMove) === true){
-            placeMove();
+            return placeMove();
         }
-        board.getGame()[playerMove].occupied = currentPlayer.symbol;
+        gameBoard.getGame()[playerMove].occupied = currentPlayer.symbol;
+    }
+
+    const displayWinner = () => {
+        gameBoard.displayTerminal();
+        currentPlayer.addScore();
+        console.log(`${currentPlayer.symbol}'s won!`)
+        console.log(`player ${players.player1.symbol} score: ${players.player1.getScore()} | player ${players.player2.symbol} score: ${players.player2.getScore()} `)
+        gameBoard.resetGame();
+    }
+
+    const displayTie = () => {
+        console.log(`It's a tie!`)
+        console.log(`player ${players.player1.symbol} score: ${players.player1.getScore()} | player ${players.player2.symbol} score: ${players.player2.getScore()} `)
+        gameBoard.resetGame();
     }
 
     let turns = 0;
-    while(turns < 10){
+    while(turns < 11){
         placeMove(currentPlayer);
-        if(board.checkWin().won === true){
-            console.log(`${currentPlayer.symbol}'s won!`)
-            board.displayTerminal();
-            currentPlayer.addScore();
-
-            return currentPlayer;
+        if(gameBoard.checkWin().won === true){
+            displayWinner();
+            return;
+        }
+        if(turns === 10){
+            displayTie();
+            return;
         }
         switchPlayers();
         turns++; 
     }
-})();
+};
 
 const gameController = (function (){
+    startGame.init();
+    const players = startGame.getPlayers()
+    console.log("Are players the same?", players.player1 === startGame.getPlayers().player1);
 
+
+    const continueGame = () =>{
+        if(players.player1.getScore() === 3 || players.player2.getScore() === 3){
+            return false;
+        }
+        else{
+            return true;
+        }
+    }
+
+    const endGame = () => {
+
+    }
+
+    while (continueGame() === true){
+        playRound();
+    }
+    const restartWholeGame = () => gameController.restartWholeGame();
 })();
 
+gameController();
 /*
 const game1 = createGameBoard();
 game1.setUpGame();
