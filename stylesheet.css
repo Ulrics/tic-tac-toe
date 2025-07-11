@@ -1,7 +1,7 @@
 :root{
     --primary-grey: var(#E2E2E2);
     --light-grey: var(#FAFAFA);
-    --bdr-grey: var(#B4B4B4);
+    --bdr-grey: var(rgba(180, 180, 180, .3));
     --white: var(#FFFFFF);
     --purple: var(#8D3FC9);
     --green: var(#52CA1B);
@@ -18,4 +18,30 @@ body{
     align-items: center;
     width: 100%;
     height: 100vh;
+}
+
+.game-container{
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+}
+
+.gap-container{
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.header{
+    font: 700 2rem/3rem 'Albert Sans';
+}
+
+.dialog-box{
+    padding: 8px;
+    width: 100%;
+    max-width: 288px;
+    font: 500 1rem/2rem 'Albert Sans';
+    border-radius: 12px;
+    border: 1px solid var(--bdr-grey);
+    text-align: center;
 }
