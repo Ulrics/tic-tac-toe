@@ -1,4 +1,4 @@
-const prompt = require('prompt-sync')();
+//const prompt = require('prompt-sync')();
 
 function createPlayer (symbol) {
     this.symbol = symbol;
@@ -11,6 +11,7 @@ function createPlayer (symbol) {
 
 const gameBoard = (function () {
     let gameArray = [];
+    const boardSpots = document.querySelectorAll("[data-attribute='board']")
 
     const createCoords = (coordinates, occupied) => {
     return {
@@ -22,6 +23,7 @@ const gameBoard = (function () {
         for (let i = 0; i < 9; i++){
             gameArray.push(createCoords(i, null));
         }
+        console.log(boardSpots)
     }
     const getGame = () => gameArray;
     const resetGame = () => {
@@ -55,14 +57,15 @@ const gameBoard = (function () {
         }
     console.log(display);
     };
+    const getBoardSpots = () => boardSpots;
 
-    return { setUpGame, getGame, resetGame, checkWin, displayTerminal };
+    return { setUpGame, getGame, resetGame, checkWin, getBoardSpots, displayTerminal };
 })();
 
 const startGame = (function () {
-    let player1;
-    let player2;
-
+    let playerX;
+    let playerO;
+    /*
     const init = () =>{
         let playerChoice = prompt("Choose X or O", "X");
         if(playerChoice === "x" || playerChoice === "o"){
@@ -81,23 +84,32 @@ const startGame = (function () {
             player2 = createPlayer("X");
         }
     }
-    const getPlayers = () => ({ player1, player2 });
+    */
+    const init = () =>{
+        playerX = createPlayer("X");
+        playerO = createPlayer("O"); 
+    }   
+    const getPlayers = () => ({ playerX, playerO });
 
     return { init, getPlayers };
 })();
 
 function playRound() {
     const players = startGame.getPlayers()
-    let currentPlayer = players.player1;
+    let currentPlayer = players.playerX;
+    const nextGameBtn = document.getElementById("next-game-btn");
+    const dialog = document.querySelector(".dialog-box");
 
     gameBoard.setUpGame();
-
+    
     const switchPlayers = () =>{
-        if(currentPlayer === players.player1){
-            currentPlayer = players.player2;
+        if(currentPlayer === players.playerX){
+            currentPlayer = players.playerO;
+            dialog.textContent = `Player ${players.playerO.symbol} turn`;
         }
         else{
-            currentPlayer = players.player1;
+            currentPlayer = players.playerX;
+            dialog.textContent = `Player ${players.playerX.symbol} turn`;
         }
     }
 
@@ -105,32 +117,58 @@ function playRound() {
         return gameBoard.getGame()[coordinate].occupied !== null;
     }
 
-    const placeMove = () =>{
+    const placeMove = (playerMove) =>{
+        console.log("space clicked");
         gameBoard.displayTerminal();
-        let playerMove = prompt(`Choose where to place your move Player:${currentPlayer.symbol}`, "");
-        if(playerMove > 9){
-            return placeMove();
-        }
+        //let playerMove = prompt(`Choose where to place your move Player:${currentPlayer.symbol}`, "");
         if(isOccupied(playerMove) === true){
-            return placeMove();
+            return;
         }
         gameBoard.getGame()[playerMove].occupied = currentPlayer.symbol;
+        gameBoard.getBoardSpots()[playerMove].classList.replace("board", "board-occupied");
+        if(currentPlayer === players.playerX){
+            const xSymbol = document.createElement("img");
+            xSymbol.classList.add("marker");
+            xSymbol.src = "images/X.svg";
+            xSymbol.alt = "X icon";
+            gameBoard.getBoardSpots()[playerMove].appendChild(xSymbol);
+        }
+        else{
+            const oSymbol = document.createElement("img");
+            oSymbol.classList.add("marker");
+            oSymbol.src = "images/O.svg";
+            oSymbol.alt = "O icon";
+            gameBoard.getBoardSpots()[playerMove].appendChild(oSymbol);
+        }
+        
+        if(gameBoard.checkWin().won === true){
+
+            return;
+        }
+        switchPlayers();
+    }
+
+    for(let i = 0; i < gameBoard.getBoardSpots().length; i++){
+        gameBoard.getBoardSpots()[i].addEventListener("click", () => placeMove(i));
     }
 
     const displayWinner = () => {
         gameBoard.displayTerminal();
         currentPlayer.addScore();
-        console.log(`${currentPlayer.symbol}'s won!`)
-        console.log(`player ${players.player1.symbol} score: ${players.player1.getScore()} | player ${players.player2.symbol} score: ${players.player2.getScore()} `)
-        gameBoard.resetGame();
+        for(let y = 0; y < 3; y++){
+            gameBoard.getBoardSpots()[gameBoard.checkWin().winningCombo[y]].style.backgroundColor = "var(--light-green)";
+        }
+        nextGameBtn.classList.replace("board", "board-occupied");
+        console.log(`${currentPlayer} won`)
     }
 
     const displayTie = () => {
         console.log(`It's a tie!`)
-        console.log(`player ${players.player1.symbol} score: ${players.player1.getScore()} | player ${players.player2.symbol} score: ${players.player2.getScore()} `)
+        console.log(`player ${players.playerX.symbol} score: ${players.playerX.getScore()} | player ${players.playerO.symbol} score: ${players.playerO.getScore()} `)
         gameBoard.resetGame();
     }
 
+    /*
     let turns = 0;
     while(turns < 11){
         placeMove(currentPlayer);
@@ -145,36 +183,37 @@ function playRound() {
         switchPlayers();
         turns++; 
     }
+    */
 };
 
 const gameController = (function (){
     startGame.init();
     const players = startGame.getPlayers()
-    console.log("Are players the same?", players.player1 === startGame.getPlayers().player1);
+    console.log("Are players the same?", players.playerX === startGame.getPlayers().playerX);
 
-
+    /*
     const continueGame = () =>{
-        if(players.player1.getScore() === 3 || players.player2.getScore() === 3){
+        if(players.playerX.getScore() === 3 || players.playerO.getScore() === 3){
             return false;
         }
         else{
             return true;
         }
     }
+    */
 
     const endGame = () => {
 
     }
-
+    /*
     while (continueGame() === true){
         playRound();
     }
+    */
     const restartWholeGame = () => gameController.restartWholeGame();
+
+    const restartGameBtn = document.querySelector(".restart-button");
+    //document.addEventListener("click")
 })();
 
-gameController();
-/*
-const game1 = createGameBoard();
-game1.setUpGame();
-console.log(game1.displayGame().push(5));
-*/
+playRound();
