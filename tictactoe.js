@@ -1,5 +1,3 @@
-//const prompt = require('prompt-sync')();
-
 function createPlayer (symbol) {
     this.symbol = symbol;
     let score = 0;
@@ -13,6 +11,14 @@ const gameBoard = (function () {
     let gameArray = [];
     const boardSpots = document.querySelectorAll("[data-attribute='board']")
 
+    const getBoardSpots = () => boardSpots;
+    const resetBoard = () =>{
+        boardSpots.forEach(spot => {
+            spot.classList.remove(...spot.classList);
+            spot.classList.add("board");
+            spot.innerHTML = "";
+        });
+    }
     const createCoords = (coordinates, occupied) => {
     return {
         coordinates: coordinates,
@@ -31,7 +37,6 @@ const gameBoard = (function () {
             gameArray[y].occupied = null;
         }
     }
-
     const checkWin = () => {
         const combos = [[0,1,2], [3,4,5], [6,7,8], [0,3,6], 
                         [1,4,7], [2,5,8], [0,4,8], [2,4,6]]
@@ -46,6 +51,15 @@ const gameBoard = (function () {
         return { won: false, symbol: null, winningCombo: null };
     }
 
+    const checkTie = () => {
+        for (let z = 0; z < gameArray.length; z++){
+            if(gameArray[z].occupied === null){
+                return false;
+            }
+        }
+        return true;
+    }
+
     const displayTerminal = () => {
     let display = "";
         for (let i = 0; i < 9; i += 3) {
@@ -57,34 +71,14 @@ const gameBoard = (function () {
         }
     console.log(display);
     };
-    const getBoardSpots = () => boardSpots;
 
-    return { setUpGame, getGame, resetGame, checkWin, getBoardSpots, displayTerminal };
+    return { setUpGame, getGame, resetGame, checkWin, checkTie, getBoardSpots, resetBoard, displayTerminal };
 })();
 
 const startGame = (function () {
     let playerX;
     let playerO;
-    /*
-    const init = () =>{
-        let playerChoice = prompt("Choose X or O", "X");
-        if(playerChoice === "x" || playerChoice === "o"){
-            playerChoice = playerChoice.toUpperCase(); 
-        }
-        if(playerChoice !== "X" && playerChoice !== "O"){
-            playerChoice = "X";
-            console.log("Invalid choice. Defaulting to X.");
-        }
-        player1 = createPlayer(playerChoice);
-        console.log(`You chose to play as: ${playerChoice}`);
-        if(player1.symbol === "X"){
-            player2 = createPlayer("O");
-        }
-        else{
-            player2 = createPlayer("X");
-        }
-    }
-    */
+
     const init = () =>{
         playerX = createPlayer("X");
         playerO = createPlayer("O"); 
@@ -94,126 +88,133 @@ const startGame = (function () {
     return { init, getPlayers };
 })();
 
-function playRound() {
-    const players = startGame.getPlayers()
-    let currentPlayer = players.playerX;
-    const nextGameBtn = document.getElementById("next-game-btn");
-    const dialog = document.querySelector(".dialog-box");
-
-    gameBoard.setUpGame();
-    
-    const switchPlayers = () =>{
-        if(currentPlayer === players.playerX){
-            currentPlayer = players.playerO;
-            dialog.textContent = `Player ${players.playerO.symbol} turn`;
-        }
-        else{
-            currentPlayer = players.playerX;
-            dialog.textContent = `Player ${players.playerX.symbol} turn`;
-        }
-    }
-
-    const isOccupied = (coordinate) =>{
-        return gameBoard.getGame()[coordinate].occupied !== null;
-    }
-
-    const placeMove = (playerMove) =>{
-        console.log("space clicked");
-        gameBoard.displayTerminal();
-        //let playerMove = prompt(`Choose where to place your move Player:${currentPlayer.symbol}`, "");
-        if(isOccupied(playerMove) === true){
-            return;
-        }
-        gameBoard.getGame()[playerMove].occupied = currentPlayer.symbol;
-        gameBoard.getBoardSpots()[playerMove].classList.replace("board", "board-occupied");
-        if(currentPlayer === players.playerX){
-            const xSymbol = document.createElement("img");
-            xSymbol.classList.add("marker");
-            xSymbol.src = "images/X.svg";
-            xSymbol.alt = "X icon";
-            gameBoard.getBoardSpots()[playerMove].appendChild(xSymbol);
-        }
-        else{
-            const oSymbol = document.createElement("img");
-            oSymbol.classList.add("marker");
-            oSymbol.src = "images/O.svg";
-            oSymbol.alt = "O icon";
-            gameBoard.getBoardSpots()[playerMove].appendChild(oSymbol);
-        }
-        
-        if(gameBoard.checkWin().won === true){
-
-            return;
-        }
-        switchPlayers();
-    }
-
-    for(let i = 0; i < gameBoard.getBoardSpots().length; i++){
-        gameBoard.getBoardSpots()[i].addEventListener("click", () => placeMove(i));
-    }
-
-    const displayWinner = () => {
-        gameBoard.displayTerminal();
-        currentPlayer.addScore();
-        for(let y = 0; y < 3; y++){
-            gameBoard.getBoardSpots()[gameBoard.checkWin().winningCombo[y]].style.backgroundColor = "var(--light-green)";
-        }
-        nextGameBtn.classList.replace("board", "board-occupied");
-        console.log(`${currentPlayer} won`)
-    }
-
-    const displayTie = () => {
-        console.log(`It's a tie!`)
-        console.log(`player ${players.playerX.symbol} score: ${players.playerX.getScore()} | player ${players.playerO.symbol} score: ${players.playerO.getScore()} `)
-        gameBoard.resetGame();
-    }
-
-    /*
-    let turns = 0;
-    while(turns < 11){
-        placeMove(currentPlayer);
-        if(gameBoard.checkWin().won === true){
-            displayWinner();
-            return;
-        }
-        if(turns === 10){
-            displayTie();
-            return;
-        }
-        switchPlayers();
-        turns++; 
-    }
-    */
-};
-
 const gameController = (function (){
     startGame.init();
+    gameBoard.setUpGame();
+    
     const players = startGame.getPlayers()
-    console.log("Are players the same?", players.playerX === startGame.getPlayers().playerX);
-
-    /*
-    const continueGame = () =>{
-        if(players.playerX.getScore() === 3 || players.playerO.getScore() === 3){
-            return false;
-        }
-        else{
-            return true;
-        }
-    }
-    */
-
-    const endGame = () => {
-
-    }
-    /*
-    while (continueGame() === true){
-        playRound();
-    }
-    */
-    const restartWholeGame = () => gameController.restartWholeGame();
-
+    const playerXScore = document.getElementById("x-score");
+    const playerOScore = document.getElementById("o-score");
+    const dialog = document.querySelector(".dialog-box");
+    const nextGameBtn = document.getElementById("next-game-btn");
     const restartGameBtn = document.querySelector(".restart-button");
-    //document.addEventListener("click")
-})();
 
-playRound();
+    function playRound() {
+    let currentPlayer = players.playerX;
+
+
+        function placeMoveListener(e) {
+            const index = Number(e.currentTarget.getAttribute("data-coordinate"));
+            placeMove(index);
+        }
+
+        const addBoardListener = () => {
+            gameBoard.getBoardSpots().forEach(spot => {
+                spot.addEventListener("click", placeMoveListener);
+            });
+        };
+
+        const removeBoardListener = () => {
+            gameBoard.getBoardSpots().forEach(spot => {
+                spot.removeEventListener("click", placeMoveListener);
+            });
+        };
+
+        addBoardListener();
+
+        const switchPlayers = () =>{
+            if(currentPlayer === players.playerX){
+                currentPlayer = players.playerO;
+                dialog.textContent = `Player ${players.playerO.symbol} turn`;
+            }
+            else{
+                currentPlayer = players.playerX;
+                dialog.textContent = `Player ${players.playerX.symbol} turn`;
+            }
+        }
+
+        const isOccupied = (coordinate) =>{
+            return gameBoard.getGame()[coordinate].occupied !== null;
+        }
+
+        const placeMove = (playerMove) =>{
+            console.log("space clicked");
+            gameBoard.displayTerminal();
+            
+            if(isOccupied(playerMove) === true){
+                return;
+            }
+            gameBoard.getGame()[playerMove].occupied = currentPlayer.symbol;
+            gameBoard.getBoardSpots()[playerMove].classList.replace("board", "board-occupied");
+            if(currentPlayer === players.playerX){
+                const xSymbol = document.createElement("img");
+                xSymbol.classList.add("marker");
+                xSymbol.src = "images/X.svg";
+                xSymbol.alt = "X icon";
+                gameBoard.getBoardSpots()[playerMove].appendChild(xSymbol);
+            }
+            else{
+                const oSymbol = document.createElement("img");
+                oSymbol.classList.add("marker");
+                oSymbol.src = "images/O.svg";
+                oSymbol.alt = "O icon";
+                gameBoard.getBoardSpots()[playerMove].appendChild(oSymbol);
+            }
+            
+            if(gameBoard.checkWin().won === true){
+                displayWinner();
+                removeBoardListener();
+                return;
+            }
+            if(gameBoard.checkTie()){
+                displayTie();
+                removeBoardListener();
+                return;
+            }
+            switchPlayers();
+        }
+
+        const displayWinner = () => {
+            gameBoard.displayTerminal();
+            currentPlayer.addScore();
+            for(let y = 0; y < 3; y++){
+                gameBoard.getBoardSpots()[gameBoard.checkWin().winningCombo[y]].classList.replace("board-occupied", "board-winner");
+            }
+            nextGameBtn.classList.replace("disabled-button", "next-button");
+            nextGameBtn.addEventListener("click", nextGame);
+            playerXScore.textContent = players.playerX.getScore();
+            playerOScore.textContent = players.playerO.getScore();
+            dialog.textContent = `Player ${currentPlayer.symbol} won!`
+        }
+
+        const displayTie = () => {
+            nextGameBtn.classList.replace("disabled-button", "next-button");
+            nextGameBtn.addEventListener("click", nextGame);
+            dialog.textContent = `Game is tied!`;
+        }
+    };
+
+    playRound();
+
+    const restartGame = () =>{
+        players.playerX.resetScore();
+        players.playerO.resetScore();
+        playerXScore.textContent = players.playerX.getScore();
+        playerOScore.textContent = players.playerO.getScore();
+        nextGameBtn.classList.replace("next-button", "disabled-button");
+        
+        gameBoard.resetBoard();
+        gameBoard.resetGame(); 
+        playRound();     
+    }
+
+    const nextGame = () =>{
+        gameBoard.resetBoard();
+        gameBoard.resetGame();
+        playRound();
+        nextGameBtn.classList.replace("next-button", "disabled-button");
+        nextGameBtn.removeEventListener("click", nextGame);
+    }
+
+    restartGameBtn.addEventListener("click", restartGame);
+})();

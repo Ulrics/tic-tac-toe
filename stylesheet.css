@@ -96,7 +96,8 @@ body{
 }
 
 .board,
-.board-occupied{
+.board-occupied,
+.board-winner{
     width: 80px;
     height: 80px;
     border: 1px solid var(--bdr-grey);
@@ -112,6 +113,10 @@ body{
 
 .board-occupied{
     background-color: var(--light-grey);
+}
+
+.board-winner{
+    background-color: var(--light-green);
 }
 
 .board:hover{
