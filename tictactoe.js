@@ -90,8 +90,7 @@ const startGame = (function () {
 
 const gameController = (function (){
     startGame.init();
-    gameBoard.setUpGame();
-    
+
     const players = startGame.getPlayers()
     const playerXScore = document.getElementById("x-score");
     const playerOScore = document.getElementById("o-score");
@@ -100,9 +99,8 @@ const gameController = (function (){
     const restartGameBtn = document.querySelector(".restart-button");
 
     function playRound() {
-    let currentPlayer = players.playerX;
-
-
+        let currentPlayer = players.playerX;
+        dialog.textContent = `Player ${currentPlayer.symbol} turn`;
         function placeMoveListener(e) {
             const index = Number(e.currentTarget.getAttribute("data-coordinate"));
             placeMove(index);
@@ -194,15 +192,12 @@ const gameController = (function (){
         }
     };
 
-    playRound();
-
     const restartGame = () =>{
         players.playerX.resetScore();
         players.playerO.resetScore();
         playerXScore.textContent = players.playerX.getScore();
         playerOScore.textContent = players.playerO.getScore();
         nextGameBtn.classList.replace("next-button", "disabled-button");
-        
         gameBoard.resetBoard();
         gameBoard.resetGame(); 
         playRound();     
@@ -215,6 +210,9 @@ const gameController = (function (){
         nextGameBtn.classList.replace("next-button", "disabled-button");
         nextGameBtn.removeEventListener("click", nextGame);
     }
+    
+    gameBoard.setUpGame();
+    playRound();
 
     restartGameBtn.addEventListener("click", restartGame);
 })();
